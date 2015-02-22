@@ -1,0 +1,96 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ProfileActivity$PlaceholderFragment">
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:padding="10dp"
+            android:textSize="20sp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="@string/url"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content" />
+
+        <EditText
+            android:id="@+id/url_edit"
+            android:layout_weight="2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="@string/url_hint"
+            />
+        </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:padding="10dp"
+            android:textSize="20sp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="@string/usr"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content" />
+
+        <EditText
+            android:id="@+id/usr_edit"
+            android:layout_weight="2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="@string/usr_hint"
+            />
+    </LinearLayout>
+    <TextView
+        android:padding="10dp"
+        android:textSize="30sp"
+        android:gravity="center"
+        android:text="@string/password"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" />
+    <TextView
+        android:id="@+id/gen_password"
+        android:gravity="center"
+        android:padding="25dp"
+        android:paddingTop="0dp"
+        android:textSize="20sp"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" />
+    <TextView
+        android:text="Length"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" />
+    <SeekBar
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" />
+    <CheckBox
+        android:text="Lower"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" />
+    <CheckBox
+        android:text="Upper"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" />
+    <CheckBox
+        android:text="Digit"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" />
+    <CheckBox
+        android:text="Punct"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" />
+    <CheckBox
+        android:text="Spaces"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" />
+
+</LinearLayout>
