@@ -1,12 +1,13 @@
 package com.sorenson.michael.passwordmanager;
 
+import java.io.Serializable;
 import java.util.UUID;
 import java.util.Date;
 import java.security.GeneralSecurityException;
 import java.math.BigInteger;
 import com.lambdaworks.crypto.SCrypt;
 
-public class Profile {
+public class Profile implements Serializable {
     public static final String SCHEME_SCRYPT_16384_8_1 =
         "scrypt(master\\turl\\tusername,generation,16384,8,1,length)";
     public static final int MIN_MASTER_LENGTH = 1;

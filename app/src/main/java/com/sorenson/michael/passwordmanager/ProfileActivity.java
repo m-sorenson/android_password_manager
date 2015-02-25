@@ -10,18 +10,23 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.os.Build;
+import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.security.GeneralSecurityException;
 
 
 public class ProfileActivity extends ActionBarActivity {
 
-    @Override
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
+
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.container, new PlaceholderFragment())
@@ -57,8 +62,6 @@ public class ProfileActivity extends ActionBarActivity {
      */
     public static class PlaceholderFragment extends Fragment {
 
-        Profile p = new Profile();
-
         public PlaceholderFragment() {
         }
 
@@ -66,14 +69,92 @@ public class ProfileActivity extends ActionBarActivity {
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_profile, container, false);
-            p.url = "google.com";
-            p.username = "m.sorenson407@gmail.com";
+            final Profile p = (Profile)getActivity().getIntent().getSerializableExtra("curProfile");
             EditText url = (EditText) rootView.findViewById(R.id.url_edit);
             EditText usr = (EditText) rootView.findViewById(R.id.usr_edit);
             url.setText(p.url);
             usr.setText(p.username);
             TextView passwordView = (TextView) rootView.findViewById(R.id.gen_password);
-            passwordView.setText("hello");
+            passwordView.setText("");
+
+            final TextView lenDisplay = (TextView) rootView.findViewById(R.id.len_display);
+            lenDisplay.setText(String.valueOf(p.length));
+
+            final SeekBar lenBar = (SeekBar) rootView.findViewById(R.id.len_bar);
+            lenBar.setMax(p.MAX_LENGTH - p.MIN_LENGTH);
+            lenBar.setProgress(p.length);
+            lenBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    lenDisplay.setText(String.valueOf(progress));
+                    p.length = progress;
+                }
+                public void onStartTrackingTouch(SeekBar seekBar) {}
+                public void onStopTrackingTouch(SeekBar seekBar) {
+                }
+            });
+
+            final CheckBox lower = (CheckBox) rootView.findViewById(R.id.cb_lower);
+            lower.setChecked(p.lower);
+            lower.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    p.lower = lower.isChecked();
+                }
+            });
+
+            final CheckBox upper = (CheckBox) rootView.findViewById(R.id.cb_upper);
+            upper.setChecked(p.upper);
+            upper.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    p.upper = upper.isChecked();
+                }
+            });
+
+            final CheckBox digit = (CheckBox) rootView.findViewById(R.id.cb_digit);
+            digit.setChecked(p.digits);
+            digit.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    p.digits = digit.isChecked();
+                }
+            });
+
+            final CheckBox punct = (CheckBox) rootView.findViewById(R.id.cb_punct);
+            punct.setChecked(p.punctuation);
+            punct.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    p.punctuation = punct.isChecked();
+                }
+            });
+
+            final CheckBox space = (CheckBox) rootView.findViewById(R.id.cb_space);
+            space.setChecked(p.spaces);
+            space.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    p.spaces = space.isChecked();
+                }
+            });
+
+            Button genBtn = (Button) rootView.findViewById(R.id.gen_btn);
+            genBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    View curView = getView();
+                    if(curView != null) {
+                        TextView passwordView = (TextView) curView.findViewById(R.id.gen_password);
+                        try {
+                            String password = p.generate("helloworldextraletters");
+                            passwordView.setText(password);
+                        } catch (GeneralSecurityException e) {
+                            System.out.println(e.toString());
+                        }
+                    }
+                }
+            });
+
             return rootView;
         }
 

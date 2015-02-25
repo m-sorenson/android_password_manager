@@ -2,6 +2,7 @@ package com.sorenson.michael.passwordmanager;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Parcelable;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -10,6 +11,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,18 +22,24 @@ public class ProfileManager extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile_manager);
-        List<Profile> pList = new ArrayList<>();
+        final List<Profile> pList = new ArrayList<>();
 
         Profile temp = new Profile();
         temp.title = "google";
+        temp.url = "www.google.com";
+        temp.username = "m.sorenson407@gmail.com";
         pList.add(temp);
 
         temp = new Profile();
         temp.title = "reddit";
+        temp.url = "www.reddit.com";
+        temp.username = "throwAway1234";
         pList.add(temp);
 
         temp = new Profile();
         temp.title = "facebook";
+        temp.url = "www.facebook.com";
+        temp.username = "m.sorenson407@gmail.com";
         pList.add(temp);
 
         ProfileAdapter pAdapter = new ProfileAdapter(this, R.layout.profile_item, pList);
@@ -42,7 +50,9 @@ public class ProfileManager extends ActionBarActivity {
                                             @Override
                                             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                                                 final Intent intent = new Intent();
+                                                Profile curItem = pList.get(position);
                                                 intent.setClass(context, ProfileActivity.class);
+                                                intent.putExtra("curProfile", curItem);
                                                 startActivity(intent);
                                             }
                                         }

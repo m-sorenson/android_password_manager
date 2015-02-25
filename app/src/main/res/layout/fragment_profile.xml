@@ -65,31 +65,55 @@
         android:textSize="20sp"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content" />
+    <Button
+        android:text="Generate Password"
+        android:id="@+id/gen_btn"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" />
     <TextView
         android:text="Length"
-        android:layout_width="fill_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
-    <SeekBar
+    <LinearLayout
+        android:orientation="horizontal"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content">
+        <SeekBar
+            android:id="@+id/len_bar"
+            android:layout_weight="8"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content" />
+        <TextView
+            android:id="@+id/len_display"
+            android:textSize="15sp"
+            android:gravity="center"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content" />
+        </LinearLayout>
     <CheckBox
         android:text="Lower"
+        android:id="@+id/cb_lower"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content" />
     <CheckBox
         android:text="Upper"
+        android:id="@+id/cb_upper"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content" />
     <CheckBox
         android:text="Digit"
+        android:id="@+id/cb_digit"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content" />
     <CheckBox
         android:text="Punct"
+        android:id="@+id/cb_punct"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content" />
     <CheckBox
         android:text="Spaces"
+        android:id="@+id/cb_space"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content" />
 
