@@ -9,6 +9,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ListView;
 
 import java.io.Serializable;
@@ -22,7 +23,7 @@ public class ProfileManager extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile_manager);
-        final List<Profile> pList = new ArrayList<>();
+        final ArrayList<Profile> pList = new ArrayList<>();
 
         Profile temp = new Profile();
         temp.title = "google";
@@ -42,7 +43,7 @@ public class ProfileManager extends ActionBarActivity {
         temp.username = "m.sorenson407@gmail.com";
         pList.add(temp);
 
-        ProfileAdapter pAdapter = new ProfileAdapter(this, R.layout.profile_item, pList);
+        final ProfileAdapter pAdapter = new ProfileAdapter(this, R.layout.profile_item, pList);
         ListView listView = (ListView) findViewById(R.id.profile_list_view);
         listView.setAdapter(pAdapter);
         final Context context = this;
@@ -52,13 +53,28 @@ public class ProfileManager extends ActionBarActivity {
                                                 final Intent intent = new Intent();
                                                 Profile curItem = pList.get(position);
                                                 intent.setClass(context, ProfileActivity.class);
+
                                                 intent.putExtra("curProfile", curItem);
+
+                                                intent.putExtra("profileList", pList);
+                                                intent.putExtra("profileIndex", position);
+                                                intent.putExtra("numProfiles", pList.size());
+
                                                 startActivity(intent);
                                             }
                                         }
         );
+        Button addProfile = (Button) findViewById(R.id.add_profile);
+        addProfile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+               Profile temp = new Profile();
+                temp.title = "Add New Title";
+                pList.add(temp);
+                pAdapter.notifyDataSetChanged();
+            }
+        });
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

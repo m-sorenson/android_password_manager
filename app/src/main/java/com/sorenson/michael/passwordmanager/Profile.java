@@ -133,7 +133,7 @@ public class Profile implements Serializable {
         private StringBuilder alphabet;
 
         public RandomChar(byte[] raw, StringBuilder chars) {
-            pool = new BigInteger(raw);
+            pool = new BigInteger(1, raw);
             poolSize = BigInteger.ZERO.setBit(raw.length * 8);
             alphabet = chars;
             alphabetSize = BigInteger.valueOf(alphabet.length());

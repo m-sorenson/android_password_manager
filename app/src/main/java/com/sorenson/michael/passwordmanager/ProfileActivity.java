@@ -1,5 +1,13 @@
 package com.sorenson.michael.passwordmanager;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
+import android.os.AsyncTask;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
@@ -17,20 +25,48 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.Serializable;
 import java.security.GeneralSecurityException;
+import java.util.ArrayList;
+import java.util.List;
 
 
-public class ProfileActivity extends ActionBarActivity {
+public class ProfileActivity extends FragmentActivity {
 
+    FragmentPagerAdapter adapterViewPager;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        int numItems = (int)getIntent().getIntExtra("numProfiles", 0);
         setContentView(R.layout.activity_profile);
+        ViewPager vpPager = (ViewPager) findViewById(R.id.vpPager);
+        adapterViewPager = new MyPagerAdapter(getSupportFragmentManager(), numItems);
+        vpPager.setAdapter(adapterViewPager);
+        vpPager.setCurrentItem((int)adapterViewPager.getCount()/2, false);
 
-        if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new PlaceholderFragment())
-                    .commit();
+        //if (savedInstanceState == null) {
+        //    getSupportFragmentManager().beginTransaction()
+        //            .add(R.id.container, new PlaceholderFragment())
+        //            .commit();
+        //}
+    }
+
+    public static class MyPagerAdapter extends FragmentPagerAdapter {
+        public static int loops = 1000;
+        private int NUM_ITEMS = 3;
+
+        public MyPagerAdapter(FragmentManager fragmentManager, int numItems) {
+            super(fragmentManager);
+            NUM_ITEMS = numItems;
+        }
+
+        @Override
+        public int getCount() { return NUM_ITEMS*loops; }
+
+        @Override
+        public Fragment getItem(int position) {
+            position = position % NUM_ITEMS;
+            return PlaceholderFragment.newInstance(position, "Page #"+position);
         }
     }
 
@@ -62,21 +98,74 @@ public class ProfileActivity extends ActionBarActivity {
      */
     public static class PlaceholderFragment extends Fragment {
 
+        private String Title;
+        private int index;
+        Profile p = new Profile();
+
         public PlaceholderFragment() {
+        }
+
+        public static PlaceholderFragment newInstance(int index, String Title) {
+            PlaceholderFragment placeholderFragment = new PlaceholderFragment();
+            Bundle args = new Bundle();
+            args.putInt("intPage", index);
+            args.putString("stringTitle", Title);
+            placeholderFragment.setArguments(args);
+            return placeholderFragment;
+        }
+
+        @Override
+        public void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            index = (int)getArguments().getInt("intPage");
+            Title = (String)getArguments().getString("stringTitle");
         }
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_profile, container, false);
-            final Profile p = (Profile)getActivity().getIntent().getSerializableExtra("curProfile");
-            EditText url = (EditText) rootView.findViewById(R.id.url_edit);
-            EditText usr = (EditText) rootView.findViewById(R.id.usr_edit);
+
+            List<Profile> plist = (List<Profile>) getActivity().getIntent().getSerializableExtra("profileList");
+            int pindex = (int) getActivity().getIntent().getSerializableExtra("profileIndex");
+
+            int num = pindex+index;
+            if(num >= plist.size()) {
+                p = plist.get(num - plist.size());
+            } else {
+                p = plist.get(num);
+            }
+
+            final EditText title = (EditText) rootView.findViewById(R.id.title_edit);
+            title.setText(p.title);
+            title.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    p.title = title.getText().toString();
+                }
+            });
+
+            final EditText url = (EditText) rootView.findViewById(R.id.url_edit);
             url.setText(p.url);
+            url.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    p.url = url.getText().toString();
+                }
+            });
+            final EditText usr = (EditText) rootView.findViewById(R.id.usr_edit);
             usr.setText(p.username);
+            usr.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    p.username = usr.getText().toString();
+                }
+            });
+
             TextView passwordView = (TextView) rootView.findViewById(R.id.gen_password);
             passwordView.setText("");
 
+            Toast.makeText(getActivity(), index + "--" + Title, Toast.LENGTH_LONG).show();
             final TextView lenDisplay = (TextView) rootView.findViewById(R.id.len_display);
             lenDisplay.setText(String.valueOf(p.length));
 
@@ -142,35 +231,52 @@ public class ProfileActivity extends ActionBarActivity {
             genBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    View curView = getView();
-                    if(curView != null) {
-                        TextView passwordView = (TextView) curView.findViewById(R.id.gen_password);
-                        try {
-                            String password = p.generate("helloworldextraletters");
-                            passwordView.setText(password);
-                        } catch (GeneralSecurityException e) {
-                            System.out.println(e.toString());
-                        }
-                    }
+                    update();
                 }
             });
 
+            final TextView password = (TextView) rootView.findViewById(R.id.gen_password);
+            password.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    ClipboardManager clipboard = (ClipboardManager)getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+                    ClipData clipData = ClipData.newPlainText("text", password.getText());
+                    clipboard.setPrimaryClip(clipData);
+                    Toast.makeText(getActivity(), "Clipboard has password", Toast.LENGTH_LONG).show();
+                }
+            });
             return rootView;
         }
 
-        //@Override
-        //public void onStart() {
-        //    View curView = getView();
-        //    if(curView != null) {
-        //        TextView passwordView = (TextView) curView.findViewById(R.id.gen_password);
-        //        try {
-        //            String password = p.generate("helloworldextraletters");
-        //            passwordView.setText(password);
-        //        } catch (GeneralSecurityException e) {
-        //            System.out.println(e.toString());
-        //            System.out.println("IT DIDN'T WORK");
-        //        }
-        //    }
-        //}
+   private void update() {
+           new GeneratePasswordTask().execute(null, null, null);
+       }
+
+       private class GeneratePasswordTask extends AsyncTask<Void, Void, String> {
+           TextView passwordView = (TextView) getActivity().findViewById(R.id.gen_password);
+
+           @Override
+           protected void onPreExecute() {
+               passwordView.setText("Generating...");
+
+           }
+
+           @Override
+           protected String doInBackground(Void... params) {
+               try {
+                   return p.generate("al0am0ra");
+               } catch (GeneralSecurityException e) {
+                   System.out.println(e.toString());
+               }
+               return null;
+           }
+
+           @Override
+           protected void onPostExecute(String results) {
+               //new GeneratePasswordTask().execute(null, null, null);
+               passwordView.setText(results);
+
+           }
+       }
     }
 }

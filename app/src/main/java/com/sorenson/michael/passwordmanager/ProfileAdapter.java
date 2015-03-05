@@ -1,26 +1,29 @@
 package com.sorenson.michael.passwordmanager;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.TextView;
 import java.util.List;
 
 import java.util.ArrayList;
 
 public class ProfileAdapter extends ArrayAdapter<Profile> {
-
+    List<Profile> list = new ArrayList<>();
     private static class ViewHolder {
         private TextView itemView;
     }
 
     public ProfileAdapter(Context context, int textViewResourceId, List<Profile> items) {
         super(context, textViewResourceId, items);
+        this.list = items;
     }
 
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(final int position, View convertView, ViewGroup parent) {
         ViewHolder viewHolder;
         if (convertView == null) {
             convertView = LayoutInflater.from(this.getContext())
@@ -28,6 +31,14 @@ public class ProfileAdapter extends ArrayAdapter<Profile> {
 
             viewHolder = new ViewHolder();
             viewHolder.itemView = (TextView) convertView.findViewById(R.id.ItemView);
+            Button del = (Button) convertView.findViewById(R.id.delete_btn);
+            del.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    list.remove(position);
+                    notifyDataSetChanged();
+                }
+            });
             convertView.setTag(viewHolder);
         } else {
             viewHolder = (ViewHolder) convertView.getTag();
