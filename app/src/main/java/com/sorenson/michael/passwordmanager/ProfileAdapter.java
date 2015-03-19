@@ -6,7 +6,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.TextView;
 import java.util.List;
 
@@ -31,14 +30,6 @@ public class ProfileAdapter extends ArrayAdapter<Profile> {
 
             viewHolder = new ViewHolder();
             viewHolder.itemView = (TextView) convertView.findViewById(R.id.ItemView);
-            Button del = (Button) convertView.findViewById(R.id.delete_btn);
-            del.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    list.remove(position);
-                    notifyDataSetChanged();
-                }
-            });
             convertView.setTag(viewHolder);
         } else {
             viewHolder = (ViewHolder) convertView.getTag();

@@ -1,195 +1,205 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".ProfileActivity$PlaceholderFragment">
-
+    android:layout_height="fill_parent"
+    android:layout_width="fill_parent"
+    >
     <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content">
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".ProfileActivity$PlaceholderFragment">
 
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:padding="10dp"
+                android:textSize="20sp"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content" />
+
+            <EditText
+                android:id="@+id/title_edit"
+                android:layout_weight="2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:hint="@string/title_hint"
+                />
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:padding="10dp"
+                android:textSize="20sp"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/url"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content" />
+
+            <EditText
+                android:id="@+id/url_edit"
+                android:layout_weight="2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:hint="@string/url_hint"
+                />
+            </LinearLayout>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:padding="10dp"
+                android:textSize="20sp"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/usr"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content" />
+
+            <EditText
+                android:id="@+id/usr_edit"
+                android:layout_weight="2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:hint="@string/usr_hint"
+                />
+        </LinearLayout>
         <TextView
             android:padding="10dp"
+            android:textSize="30sp"
+            android:gravity="center"
+            android:text="@string/password"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" />
+        <TextView
+            android:id="@+id/gen_password"
+            android:gravity="center"
+            android:padding="25dp"
+            android:paddingTop="0dp"
             android:textSize="20sp"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="@string/title"
-            android:layout_width="0dp"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" />
+        <Button
+            android:text="Generate Password"
+            android:id="@+id/gen_btn"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" />
+        <TextView
+            android:text="Length"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content">
+            <SeekBar
+                android:id="@+id/len_bar"
+                android:layout_weight="8"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content" />
+            <TextView
+                android:id="@+id/len_display"
+                android:textSize="15sp"
+                android:gravity="center"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content" />
+            </LinearLayout>
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:text="Lower"
+                android:id="@+id/cb_lower"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content" />
+            <CheckBox
+                android:text="Upper"
+                android:id="@+id/cb_upper"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content" />
+            </LinearLayout>
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:text="Digit"
+                android:id="@+id/cb_digit"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content" />
+            <CheckBox
+                android:text="Punct"
+                android:id="@+id/cb_punct"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content" />
+            </LinearLayout>
+        <CheckBox
+            android:text="Spaces"
+            android:id="@+id/cb_space"
+            android:layout_gravity="center"
+            android:layout_width="fill_parent"
             android:layout_height="wrap_content" />
 
-        <EditText
-            android:id="@+id/title_edit"
-            android:layout_weight="2"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:hint="@string/title_hint"
-            />
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:text="Exclude characters"
+                android:padding="10dp"
+                android:layout_weight="2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content" />
+
+            <EditText
+                android:id="@+id/exclude"
+                android:layout_weight="5"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content" />
+            </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:text="Include characters"
+                android:layout_weight="2"
+                android:padding="10dp"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content" />
+
+            <EditText
+                android:id="@+id/include"
+                android:layout_weight="5"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+        <Button
+            android:text="Save"
+            android:id="@+id/save_btn"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" />
+
     </LinearLayout>
-
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content">
-
-        <TextView
-            android:padding="10dp"
-            android:textSize="20sp"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="@string/url"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content" />
-
-        <EditText
-            android:id="@+id/url_edit"
-            android:layout_weight="2"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:hint="@string/url_hint"
-            />
-        </LinearLayout>
-
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content">
-
-        <TextView
-            android:padding="10dp"
-            android:textSize="20sp"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="@string/usr"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content" />
-
-        <EditText
-            android:id="@+id/usr_edit"
-            android:layout_weight="2"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:hint="@string/usr_hint"
-            />
-    </LinearLayout>
-    <TextView
-        android:padding="10dp"
-        android:textSize="30sp"
-        android:gravity="center"
-        android:text="@string/password"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content" />
-    <TextView
-        android:id="@+id/gen_password"
-        android:gravity="center"
-        android:padding="25dp"
-        android:paddingTop="0dp"
-        android:textSize="20sp"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content" />
-    <Button
-        android:text="Generate Password"
-        android:id="@+id/gen_btn"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content" />
-    <TextView
-        android:text="Length"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content">
-        <SeekBar
-            android:id="@+id/len_bar"
-            android:layout_weight="8"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content" />
-        <TextView
-            android:id="@+id/len_display"
-            android:textSize="15sp"
-            android:gravity="center"
-            android:layout_weight="1"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content" />
-        </LinearLayout>
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content">
-        <CheckBox
-            android:text="Lower"
-            android:id="@+id/cb_lower"
-            android:layout_gravity="center"
-            android:layout_weight="1"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content" />
-        <CheckBox
-            android:text="Upper"
-            android:id="@+id/cb_upper"
-            android:layout_gravity="center"
-            android:layout_weight="1"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content" />
-        </LinearLayout>
-    <LinearLayout
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content">
-        <CheckBox
-            android:text="Digit"
-            android:id="@+id/cb_digit"
-            android:layout_gravity="center"
-            android:layout_weight="1"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content" />
-        <CheckBox
-            android:text="Punct"
-            android:id="@+id/cb_punct"
-            android:layout_gravity="center"
-            android:layout_weight="1"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content" />
-        </LinearLayout>
-    <CheckBox
-        android:text="Spaces"
-        android:id="@+id/cb_space"
-        android:layout_gravity="center"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content" />
-
-    <LinearLayout
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content">
-        <TextView
-            android:text="Exclude characters"
-            android:padding="10dp"
-            android:layout_weight="2"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content" />
-
-        <EditText
-            android:id="@+id/exclude"
-            android:layout_weight="5"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content" />
-        </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content">
-        <TextView
-            android:text="Include characters"
-            android:layout_weight="2"
-            android:padding="10dp"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content" />
-
-        <EditText
-            android:id="@+id/include"
-            android:layout_weight="5"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content" />
-    </LinearLayout>
-
-</LinearLayout>
+</ScrollView>

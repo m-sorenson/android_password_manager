@@ -13,6 +13,7 @@
     <Button
         android:text="@string/add_profile"
         android:id="@+id/add_profile"
+        android:focusable="false"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content" />
 

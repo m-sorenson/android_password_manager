@@ -12,6 +12,8 @@ import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -23,7 +25,6 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.io.Serializable;
 import java.security.GeneralSecurityException;
@@ -31,7 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class ProfileActivity extends FragmentActivity {
+public class ProfileActivity extends ActionBarActivity {
 
     FragmentPagerAdapter adapterViewPager;
 
@@ -44,11 +45,6 @@ public class ProfileActivity extends FragmentActivity {
         vpPager.setAdapter(adapterViewPager);
         vpPager.setCurrentItem((int)adapterViewPager.getCount()/2, false);
 
-        //if (savedInstanceState == null) {
-        //    getSupportFragmentManager().beginTransaction()
-        //            .add(R.id.container, new PlaceholderFragment())
-        //            .commit();
-        //}
     }
 
     public static class MyPagerAdapter extends FragmentPagerAdapter {
@@ -98,9 +94,9 @@ public class ProfileActivity extends FragmentActivity {
      */
     public static class PlaceholderFragment extends Fragment {
 
-        private String Title;
         private int index;
         Profile p = new Profile();
+        ProfileDatabaseHelper dbHelper;
 
         public PlaceholderFragment() {
         }
@@ -118,7 +114,7 @@ public class ProfileActivity extends FragmentActivity {
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             index = (int)getArguments().getInt("intPage");
-            Title = (String)getArguments().getString("stringTitle");
+            dbHelper = new ProfileDatabaseHelper(getActivity());
         }
 
         @Override
@@ -138,26 +134,56 @@ public class ProfileActivity extends FragmentActivity {
 
             final EditText title = (EditText) rootView.findViewById(R.id.title_edit);
             title.setText(p.title);
-            title.setOnClickListener(new View.OnClickListener() {
+            title.addTextChangedListener(new TextWatcher() {
                 @Override
-                public void onClick(View v) {
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                }
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {
                     p.title = title.getText().toString();
                 }
             });
 
             final EditText url = (EditText) rootView.findViewById(R.id.url_edit);
             url.setText(p.url);
-            url.setOnClickListener(new View.OnClickListener() {
+            url.addTextChangedListener(new TextWatcher() {
                 @Override
-                public void onClick(View v) {
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                }
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {
                     p.url = url.getText().toString();
                 }
             });
             final EditText usr = (EditText) rootView.findViewById(R.id.usr_edit);
             usr.setText(p.username);
-            usr.setOnClickListener(new View.OnClickListener() {
+            usr.addTextChangedListener(new TextWatcher() {
                 @Override
-                public void onClick(View v) {
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                }
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {
                     p.username = usr.getText().toString();
                 }
             });
@@ -165,7 +191,7 @@ public class ProfileActivity extends FragmentActivity {
             TextView passwordView = (TextView) rootView.findViewById(R.id.gen_password);
             passwordView.setText("");
 
-            Toast.makeText(getActivity(), index + "--" + Title, Toast.LENGTH_LONG).show();
+            //Toast.makeText(getActivity(), index + "--" + Title, Toast.LENGTH_LONG).show();
             final TextView lenDisplay = (TextView) rootView.findViewById(R.id.len_display);
             lenDisplay.setText(String.valueOf(p.length));
 
@@ -242,7 +268,14 @@ public class ProfileActivity extends FragmentActivity {
                     ClipboardManager clipboard = (ClipboardManager)getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
                     ClipData clipData = ClipData.newPlainText("text", password.getText());
                     clipboard.setPrimaryClip(clipData);
-                    Toast.makeText(getActivity(), "Clipboard has password", Toast.LENGTH_LONG).show();
+                }
+            });
+
+            Button saveBtn = (Button) rootView.findViewById(R.id.save_btn);
+            saveBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    System.out.println(dbHelper.updateProfile(p));
                 }
             });
             return rootView;
@@ -264,7 +297,7 @@ public class ProfileActivity extends FragmentActivity {
            @Override
            protected String doInBackground(Void... params) {
                try {
-                   return p.generate("al0am0ra");
+                   return p.generate("helloworldextraletters");
                } catch (GeneralSecurityException e) {
                    System.out.println(e.toString());
                }
