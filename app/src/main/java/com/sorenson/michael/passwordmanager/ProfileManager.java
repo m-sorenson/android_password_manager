@@ -25,6 +25,9 @@ public class ProfileManager extends ActionBarActivity {
 
     Profile curProfile = new Profile();
     ProfileDatabaseHelper dbHelper;
+    final ArrayList<Profile> pList = new ArrayList<>();
+    ProfileAdapter pAdapter;
+    String masterPassword = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,30 +35,13 @@ public class ProfileManager extends ActionBarActivity {
         setContentView(R.layout.activity_profile_manager);
         dbHelper = new ProfileDatabaseHelper(this);
         ProfileDatabaseHelper.ProfileCursor profileCursor = dbHelper.getProfiles();
-        final ArrayList<Profile> pList = new ArrayList<>();
         profileCursor.moveToFirst();
         while(!profileCursor.isAfterLast()) {
             pList.add(profileCursor.getProfile());
             profileCursor.moveToNext();
         }
 
-        //Profile temp = new Profile();
-        //temp.title = "google";
-        //temp.url = "www.google.com";
-        //temp.username = "m.sorenson407@gmail.com";
-        //pList.add(temp);
-        //temp = new Profile();
-        //temp.title = "reddit";
-        //temp.url = "www.reddit.com";
-        //temp.username = "throwAway1234";
-        //pList.add(temp);
-        //temp = new Profile();
-        //temp.title = "facebook";
-        //temp.url = "www.facebook.com";
-        //temp.username = "m.sorenson407@gmail.com";
-        //pList.add(temp);
-
-        final ProfileAdapter pAdapter = new ProfileAdapter(this, R.layout.profile_item, pList);
+        pAdapter = new ProfileAdapter(this, R.layout.profile_item, pList);
         ListView listView = (ListView) findViewById(R.id.profile_list_view);
         listView.setAdapter(pAdapter);
         final Context context = this;
@@ -71,6 +57,7 @@ public class ProfileManager extends ActionBarActivity {
                                                 intent.putExtra("profileList", pList);
                                                 intent.putExtra("profileIndex", position);
                                                 intent.putExtra("numProfiles", pList.size());
+                                                intent.putExtra("masterPassword", masterPassword);
 
                                                 startActivity(intent);
                                             }
@@ -86,17 +73,19 @@ public class ProfileManager extends ActionBarActivity {
             }
         });
 
-        Button addProfile = (Button) findViewById(R.id.add_profile);
-        addProfile.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-               Profile temp = new Profile();
-                temp.title = "Add New Title";
-                dbHelper.insertProfile(temp);
-                pList.add(temp);
-                pAdapter.notifyDataSetChanged();
-            }
-        });
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        pList.clear();
+        ProfileDatabaseHelper.ProfileCursor profileCursor = dbHelper.getProfiles();
+        profileCursor.moveToFirst();
+        while(!profileCursor.isAfterLast()) {
+            pList.add(profileCursor.getProfile());
+            profileCursor.moveToNext();
+        }
     }
 
     private void genPassword(Profile p) {
@@ -110,7 +99,7 @@ public class ProfileManager extends ActionBarActivity {
 
         protected String doInBackground(Void... params) {
             try {
-                return curProfile.generate("helloworldextraletters");
+                return curProfile.generate(masterPassword);
             } catch(GeneralSecurityException e) {
                 System.out.println(e.toString());
                 return null;
@@ -140,9 +129,26 @@ public class ProfileManager extends ActionBarActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            Intent intent = new Intent();
+            intent.setClass(this, Settings.class);
+            startActivityForResult(intent, 0);
             return true;
+        }
+        if (id == R.id.add_new_profile) {
+            Profile temp = new Profile();
+            temp.title = "Add New Title";
+            dbHelper.insertProfile(temp);
+            pList.add(temp);
+            pAdapter.notifyDataSetChanged();
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(requestCode == 0 && resultCode == RESULT_OK) {
+            masterPassword = data.getData().toString();
+            Toast.makeText(this, masterPassword, Toast.LENGTH_LONG).show();
+        }
     }
 }

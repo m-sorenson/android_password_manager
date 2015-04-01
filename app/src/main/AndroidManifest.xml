@@ -18,8 +18,12 @@
         </activity>
         <activity
             android:name=".ProfileActivity"
-            android:parentActivityName=".ProfileManager"
-            android:label="@string/title_activity_profile_manager" >
+            android:label="@string/title_activity_profile_manager"
+            android:parentActivityName=".ProfileManager" >
+        </activity>
+        <activity
+            android:name=".Settings"
+            android:label="@string/title_activity_settings" >
         </activity>
     </application>
 

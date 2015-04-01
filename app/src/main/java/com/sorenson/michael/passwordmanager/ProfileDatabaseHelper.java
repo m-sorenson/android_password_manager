@@ -80,6 +80,10 @@ public class ProfileDatabaseHelper extends SQLiteOpenHelper {
         return getWritableDatabase().update("profiles", cv, UUIDCol+"='"+p.uuid.toString()+"'", null);
     }
 
+    public boolean deleteProfile(Profile p) {
+        return getWritableDatabase().delete("profiles", UUIDCol+"='"+p.uuid.toString()+"'", null)>0;
+    }
+
  public ProfileCursor getProfiles() {
         Cursor c = getReadableDatabase().rawQuery("select * from profiles", null);
         return new ProfileCursor(c);

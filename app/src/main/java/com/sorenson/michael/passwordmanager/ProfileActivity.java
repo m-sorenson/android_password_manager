@@ -16,6 +16,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,6 +26,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.Serializable;
 import java.security.GeneralSecurityException;
@@ -67,28 +69,6 @@ public class ProfileActivity extends ActionBarActivity {
     }
 
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_profile, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
     /**
      * A placeholder fragment containing a simple view.
      */
@@ -97,6 +77,7 @@ public class ProfileActivity extends ActionBarActivity {
         private int index;
         Profile p = new Profile();
         ProfileDatabaseHelper dbHelper;
+        String masterPassword = "";
 
         public PlaceholderFragment() {
         }
@@ -113,6 +94,7 @@ public class ProfileActivity extends ActionBarActivity {
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
+            setHasOptionsMenu(true);
             index = (int)getArguments().getInt("intPage");
             dbHelper = new ProfileDatabaseHelper(getActivity());
         }
@@ -124,6 +106,8 @@ public class ProfileActivity extends ActionBarActivity {
 
             List<Profile> plist = (List<Profile>) getActivity().getIntent().getSerializableExtra("profileList");
             int pindex = (int) getActivity().getIntent().getSerializableExtra("profileIndex");
+            masterPassword = (String)getActivity().getIntent().getStringExtra("masterPassword");
+            Toast.makeText(getActivity(), masterPassword, Toast.LENGTH_SHORT).show();
 
             int num = pindex+index;
             if(num >= plist.size()) {
@@ -148,6 +132,7 @@ public class ProfileActivity extends ActionBarActivity {
                 @Override
                 public void afterTextChanged(Editable s) {
                     p.title = title.getText().toString();
+                    dbHelper.updateProfile(p);
                 }
             });
 
@@ -167,6 +152,7 @@ public class ProfileActivity extends ActionBarActivity {
                 @Override
                 public void afterTextChanged(Editable s) {
                     p.url = url.getText().toString();
+                    dbHelper.updateProfile(p);
                 }
             });
             final EditText usr = (EditText) rootView.findViewById(R.id.usr_edit);
@@ -185,6 +171,7 @@ public class ProfileActivity extends ActionBarActivity {
                 @Override
                 public void afterTextChanged(Editable s) {
                     p.username = usr.getText().toString();
+                    dbHelper.updateProfile(p);
                 }
             });
 
@@ -205,6 +192,7 @@ public class ProfileActivity extends ActionBarActivity {
                 }
                 public void onStartTrackingTouch(SeekBar seekBar) {}
                 public void onStopTrackingTouch(SeekBar seekBar) {
+                    dbHelper.updateProfile(p);
                 }
             });
 
@@ -214,6 +202,7 @@ public class ProfileActivity extends ActionBarActivity {
                 @Override
                 public void onClick(View v) {
                     p.lower = lower.isChecked();
+                    dbHelper.updateProfile(p);
                 }
             });
 
@@ -223,6 +212,7 @@ public class ProfileActivity extends ActionBarActivity {
                 @Override
                 public void onClick(View v) {
                     p.upper = upper.isChecked();
+                    dbHelper.updateProfile(p);
                 }
             });
 
@@ -232,6 +222,7 @@ public class ProfileActivity extends ActionBarActivity {
                 @Override
                 public void onClick(View v) {
                     p.digits = digit.isChecked();
+                    dbHelper.updateProfile(p);
                 }
             });
 
@@ -241,6 +232,7 @@ public class ProfileActivity extends ActionBarActivity {
                 @Override
                 public void onClick(View v) {
                     p.punctuation = punct.isChecked();
+                    dbHelper.updateProfile(p);
                 }
             });
 
@@ -250,6 +242,7 @@ public class ProfileActivity extends ActionBarActivity {
                 @Override
                 public void onClick(View v) {
                     p.spaces = space.isChecked();
+                    dbHelper.updateProfile(p);
                 }
             });
 
@@ -268,14 +261,6 @@ public class ProfileActivity extends ActionBarActivity {
                     ClipboardManager clipboard = (ClipboardManager)getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
                     ClipData clipData = ClipData.newPlainText("text", password.getText());
                     clipboard.setPrimaryClip(clipData);
-                }
-            });
-
-            Button saveBtn = (Button) rootView.findViewById(R.id.save_btn);
-            saveBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    System.out.println(dbHelper.updateProfile(p));
                 }
             });
             return rootView;
@@ -297,7 +282,7 @@ public class ProfileActivity extends ActionBarActivity {
            @Override
            protected String doInBackground(Void... params) {
                try {
-                   return p.generate("helloworldextraletters");
+                   return p.generate(masterPassword);
                } catch (GeneralSecurityException e) {
                    System.out.println(e.toString());
                }
@@ -311,5 +296,21 @@ public class ProfileActivity extends ActionBarActivity {
 
            }
        }
+
+        @Override
+        public void onCreateOptionsMenu(Menu menu, MenuInflater menuInflater) {
+            menuInflater.inflate(R.menu.menu_profile, menu);
+        }
+
+        @Override
+        public boolean onOptionsItemSelected(MenuItem item) {
+            int id = item.getItemId();
+            if(id == R.id.delete_profile) {
+                dbHelper.deleteProfile(p);
+                getActivity().finish();
+                return true;
+            }
+            return super.onOptionsItemSelected(item);
+        }
     }
 }
