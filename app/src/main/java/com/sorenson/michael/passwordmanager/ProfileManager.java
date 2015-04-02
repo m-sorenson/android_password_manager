@@ -15,6 +15,19 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.protocol.HTTP;
+import org.apache.http.util.EntityUtils;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
@@ -141,8 +154,83 @@ public class ProfileManager extends ActionBarActivity {
             pList.add(temp);
             pAdapter.notifyDataSetChanged();
         }
+        if (id == R.id.sync) {
+            new ServerSync().execute(null, null, null);
+        }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public HttpResponse serverSync() {
+        JSONObject reqValue = new JSONObject();
+        JSONArray profilesjson = new JSONArray();
+        DefaultHttpClient httpClient = new DefaultHttpClient();
+        try {
+            //HttpPost req = new HttpPost("https://letmein-app/api/v1noauth/sync");
+            HttpPost req = new HttpPost("https://letmein-app.appspot.com/api/v1noauth/sync");
+            req.addHeader("content-type", "application/json");
+            req.addHeader("Accept", "application/json");
+            reqValue.put("name", "m.sorenson407@gmail.com");
+            reqValue.put("verify", "pptb");
+            reqValue.put("profiles", profilesjson);
+            reqValue.put("modified_at", "2015-04-01T20:01:25.607-06:00");
+            reqValue.put("synced_at", "2015-04-01T20:11:25.607-06:00");
+            req.setEntity(new StringEntity(reqValue.toString(), HTTP.UTF_8));
+            HttpResponse response = httpClient.execute(req);
+            return response;
+        } catch (Exception ex) {
+            System.out.println("In serverSync call");
+            System.out.println(ex.toString());
+        }
+        return null;
+    }
+
+    private class ServerSync extends AsyncTask<Void, Void, HttpResponse> {
+        protected void onPreExecute() {
+
+        }
+
+        protected HttpResponse doInBackground(Void... params) {
+            try {
+                return serverSync();
+            } catch(Exception e) {
+                System.out.println("In background task");
+                System.out.println(e.toString());
+                return null;
+            }
+        }
+
+        protected void onPostExecute(HttpResponse response) {
+            if(response == null) {
+                System.out.println("HTTP is null");
+            } else {
+                try {
+                    System.out.println(EntityUtils.toString(response.getEntity()));
+                } catch (Exception ex) {
+                    System.out.println("exception reading " + ex.toString());
+                }
+                //try {
+                //    InputStream ips = response.getEntity().getContent();
+                //    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(ips, "UTF-8"));
+                //    StringBuilder stringBuilder = new StringBuilder();
+                //    String s;
+                //    while(true) {
+                //        s = bufferedReader.readLine();
+                //        if(s==null || s.length()==0) {
+                //           break;
+                //        }
+                //        stringBuilder.append(s);
+                //    }
+                //    bufferedReader.close();
+                //    ips.close();
+                //    System.out.println(stringBuilder.toString());
+                //    System.out.println("this is what I read");
+                //} catch (Exception ex) {
+                //    System.out.println("On Post Execute");
+                //    System.out.println(ex.toString());
+                //}
+            }
+        }
     }
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
