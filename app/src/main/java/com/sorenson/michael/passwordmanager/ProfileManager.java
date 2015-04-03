@@ -170,8 +170,10 @@ public class ProfileManager extends ActionBarActivity {
             HttpPost req = new HttpPost("https://letmein-app.appspot.com/api/v1noauth/sync");
             req.addHeader("content-type", "application/json");
             req.addHeader("Accept", "application/json");
-            reqValue.put("name", "m.sorenson407@gmail.com");
-            reqValue.put("verify", "pptb");
+            //reqValue.put("name", "m.sorenson407@gmail.com");
+            reqValue.put("name", "celestecarter95@gmail.com");
+            //reqValue.put("verify", "pptb");
+            reqValue.put("verify", "pmfq");
             reqValue.put("profiles", profilesjson);
             reqValue.put("modified_at", "2015-04-01T20:01:25.607-06:00");
             reqValue.put("synced_at", "2015-04-01T20:11:25.607-06:00");
@@ -205,30 +207,13 @@ public class ProfileManager extends ActionBarActivity {
                 System.out.println("HTTP is null");
             } else {
                 try {
-                    System.out.println(EntityUtils.toString(response.getEntity()));
+                    JSONObject responseJson = new JSONObject(EntityUtils.toString(response.getEntity()));
+                    JSONArray jsonArray = responseJson.getJSONArray("profiles");
+                    System.out.println(jsonArray.length());
+                    System.out.println(responseJson.toString());
                 } catch (Exception ex) {
                     System.out.println("exception reading " + ex.toString());
                 }
-                //try {
-                //    InputStream ips = response.getEntity().getContent();
-                //    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(ips, "UTF-8"));
-                //    StringBuilder stringBuilder = new StringBuilder();
-                //    String s;
-                //    while(true) {
-                //        s = bufferedReader.readLine();
-                //        if(s==null || s.length()==0) {
-                //           break;
-                //        }
-                //        stringBuilder.append(s);
-                //    }
-                //    bufferedReader.close();
-                //    ips.close();
-                //    System.out.println(stringBuilder.toString());
-                //    System.out.println("this is what I read");
-                //} catch (Exception ex) {
-                //    System.out.println("On Post Execute");
-                //    System.out.println(ex.toString());
-                //}
             }
         }
     }
