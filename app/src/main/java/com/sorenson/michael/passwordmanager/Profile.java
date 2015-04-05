@@ -155,6 +155,7 @@ public class Profile implements Serializable {
     public JSONObject toJson() {
         JSONObject result = new JSONObject();
         try {
+            result.put("uuid", uuid.toString());
             if (generation != 1) {
                 result.put("generation", String.valueOf(generation));
             }
@@ -191,6 +192,7 @@ public class Profile implements Serializable {
             if(!exclude.equals("")) {
                 result.put("exclude", exclude);
             }
+            result.put("modified_at", Util.getTime(modifiedAt));
         } catch(Exception ex) {
             System.out.println("Your JSON is bad and you should feel bad");
         }

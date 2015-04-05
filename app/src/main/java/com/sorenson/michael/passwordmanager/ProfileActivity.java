@@ -305,7 +305,8 @@ public class ProfileActivity extends ActionBarActivity {
         public boolean onOptionsItemSelected(MenuItem item) {
             int id = item.getItemId();
             if(id == R.id.delete_profile) {
-                dbHelper.deleteProfile(p);
+                p.length = 0;
+                dbHelper.updateProfile(p);
                 getActivity().finish();
                 return true;
             }

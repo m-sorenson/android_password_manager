@@ -94,7 +94,7 @@ public class ProfileDatabaseHelper extends SQLiteOpenHelper {
     }
 
  public ProfileCursor getProfiles() {
-        Cursor c = getReadableDatabase().rawQuery("select * from profiles", null);
+        Cursor c = getReadableDatabase().rawQuery("select * from profiles where length != 0", null);
         return new ProfileCursor(c);
     }
 
