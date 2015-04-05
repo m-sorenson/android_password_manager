@@ -41,6 +41,11 @@ public class Util {
     return d;
   }
 
+  public static String getTime() {
+    Date d = new Date();
+    return String.format("%tFT%tT.%tL%tz", d, d, d, d);
+  }
+
   //some testing stuff in main()
   public static void main(String[] args)throws java.text.ParseException{
     System.out.println(parseRFC3339Date("2007-05-01T15:43:26-07:00"));

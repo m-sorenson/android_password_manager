@@ -32,6 +32,7 @@ import java.io.Serializable;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 
 public class ProfileManager extends ActionBarActivity {
@@ -99,6 +100,7 @@ public class ProfileManager extends ActionBarActivity {
             pList.add(profileCursor.getProfile());
             profileCursor.moveToNext();
         }
+        pAdapter.notifyDataSetChanged();
     }
 
     private void genPassword(Profile p) {
@@ -166,14 +168,11 @@ public class ProfileManager extends ActionBarActivity {
         JSONArray profilesjson = new JSONArray();
         DefaultHttpClient httpClient = new DefaultHttpClient();
         try {
-            //HttpPost req = new HttpPost("https://letmein-app/api/v1noauth/sync");
             HttpPost req = new HttpPost("https://letmein-app.appspot.com/api/v1noauth/sync");
             req.addHeader("content-type", "application/json");
             req.addHeader("Accept", "application/json");
-            //reqValue.put("name", "m.sorenson407@gmail.com");
-            reqValue.put("name", "celestecarter95@gmail.com");
-            //reqValue.put("verify", "pptb");
-            reqValue.put("verify", "pmfq");
+            reqValue.put("name", "m.sorenson407@gmail.com");
+            reqValue.put("verify", "pptb");
             reqValue.put("profiles", profilesjson);
             reqValue.put("modified_at", "2015-04-01T20:01:25.607-06:00");
             reqValue.put("synced_at", "2015-04-01T20:11:25.607-06:00");
@@ -209,8 +208,35 @@ public class ProfileManager extends ActionBarActivity {
                 try {
                     JSONObject responseJson = new JSONObject(EntityUtils.toString(response.getEntity()));
                     JSONArray jsonArray = responseJson.getJSONArray("profiles");
-                    System.out.println(jsonArray.length());
-                    System.out.println(responseJson.toString());
+                    JSONObject tempJson;
+                    Profile temp;
+                    for(int i=0; i<jsonArray.length(); i++) {
+                        tempJson = jsonArray.getJSONObject(i);
+                        temp = new Profile();
+                        temp.username = tempJson.getString("username");
+                        temp.url = tempJson.getString("url");
+                        temp.digits = tempJson.getBoolean("digits");
+                        temp.lower = tempJson.getBoolean("lower");
+                        temp.length = tempJson.getInt("length");
+                        String tempUUID = tempJson.getString("uuid");
+                        temp.uuid = UUID.fromString(tempUUID);
+                        if(dbHelper.profileExists(tempUUID)) {
+                            System.out.println("updated profile");
+                            dbHelper.updateProfile(temp);
+                        } else {
+                            System.out.println("added new profile");
+                            temp.title = temp.url;
+                            dbHelper.insertProfile(temp);
+                        }
+                    }
+                    pList.clear();
+                    ProfileDatabaseHelper.ProfileCursor profileCursor = dbHelper.getProfiles();
+                    profileCursor.moveToFirst();
+                    while(!profileCursor.isAfterLast()) {
+                        pList.add(profileCursor.getProfile());
+                        profileCursor.moveToNext();
+                    }
+                    pAdapter.notifyDataSetChanged();
                 } catch (Exception ex) {
                     System.out.println("exception reading " + ex.toString());
                 }
@@ -221,7 +247,6 @@ public class ProfileManager extends ActionBarActivity {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(requestCode == 0 && resultCode == RESULT_OK) {
             masterPassword = data.getData().toString();
-            Toast.makeText(this, masterPassword, Toast.LENGTH_LONG).show();
         }
     }
 }

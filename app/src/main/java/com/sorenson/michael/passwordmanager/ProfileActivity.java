@@ -107,7 +107,6 @@ public class ProfileActivity extends ActionBarActivity {
             List<Profile> plist = (List<Profile>) getActivity().getIntent().getSerializableExtra("profileList");
             int pindex = (int) getActivity().getIntent().getSerializableExtra("profileIndex");
             masterPassword = (String)getActivity().getIntent().getStringExtra("masterPassword");
-            Toast.makeText(getActivity(), masterPassword, Toast.LENGTH_SHORT).show();
 
             int num = pindex+index;
             if(num >= plist.size()) {

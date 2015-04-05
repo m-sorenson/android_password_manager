@@ -7,6 +7,8 @@ import java.security.GeneralSecurityException;
 import java.math.BigInteger;
 import com.lambdaworks.crypto.SCrypt;
 
+import org.json.JSONObject;
+
 public class Profile implements Serializable {
     public static final String SCHEME_SCRYPT_16384_8_1 =
         "scrypt(master\\turl\\tusername,generation,16384,8,1,length)";
@@ -40,6 +42,7 @@ public class Profile implements Serializable {
     public boolean spaces;
     public String include;
     public String exclude;
+    public Date modifiedAt;
 
     // make an empty profile
     public Profile() {
@@ -57,6 +60,7 @@ public class Profile implements Serializable {
         spaces = false;
         include = "";
         exclude = "";
+        modifiedAt = new Date();
     }
 
     // generate a password from this profile
@@ -145,6 +149,73 @@ public class Profile implements Serializable {
             pool = qr[1];
             int which = qr[0].intValue();
             return alphabet.charAt(which);
+        }
+    }
+
+    public JSONObject toJson() {
+        JSONObject result = new JSONObject();
+        try {
+            if (generation != 1) {
+                result.put("generation", String.valueOf(generation));
+            }
+            if(!title.equals("")) {
+                result.put("title", title);
+            }
+            if(!url.equals("")) {
+                result.put("url", url);
+            }
+            if(!username.equals("")) {
+                result.put("username", username);
+            }
+            if(length != DEFAULT_LENGTH) {
+                result.put("length", String.valueOf(length));
+            }
+            if(!lower) {
+                result.put("lower", String.valueOf(false));
+            }
+            if(!upper) {
+                result.put("upper", String.valueOf(false));
+            }
+            if(!digits) {
+                result.put("digits", String.valueOf(false));
+            }
+            if(!punctuation) {
+                result.put("punctuation", String.valueOf(false));
+            }
+            if(spaces) {
+                result.put("spaces", String.valueOf(true));
+            }
+            if(!include.equals("")) {
+                result.put("include", include);
+            }
+            if(!exclude.equals("")) {
+                result.put("exclude", exclude);
+            }
+        } catch(Exception ex) {
+            System.out.println("Your JSON is bad and you should feel bad");
+        }
+        return result;
+    }
+
+    public void fromJson(JSONObject input) {
+        uuid = UUID.fromString(input.optString("uuid"));
+        generation = input.optInt("generation", 1);
+        title = input.optString("title", "");
+        url = input.optString("url", "");
+        username = input.optString("username", "");
+        length = input.optInt("generation", DEFAULT_LENGTH);
+        lower = input.optBoolean("lower", true);
+        upper = input.optBoolean("upper", true);
+        digits = input.optBoolean("digits", true);
+        punctuation = input.optBoolean("punctuation", true);
+        spaces = input.optBoolean("punctuation", false);
+        include = input.optString("include", "");
+        exclude = input.optString("exclude", "");
+        try {
+            String modified = input.optString("modified_at");
+            modifiedAt = Util.parseRFC3339Date(modified);
+        } catch (Exception ex) {
+            modifiedAt = new Date();
         }
     }
 }

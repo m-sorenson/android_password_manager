@@ -7,6 +7,7 @@ import android.database.CursorWrapper;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import java.util.Date;
 import java.util.UUID;
 
 public class ProfileDatabaseHelper extends SQLiteOpenHelper {
@@ -26,6 +27,7 @@ public class ProfileDatabaseHelper extends SQLiteOpenHelper {
     private static final String SpacesCol = "spaces";
     private static final String IncludeCol = "include";
     private static final String ExcludeCol = "exclude";
+    private static final String ModifiedAt = "modified_at";
 
 
     public ProfileDatabaseHelper(Context context) {
@@ -37,13 +39,18 @@ public class ProfileDatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("create table profiles (_id integer primary key autoincrement," +
                 "uuid varchar(40), title varchar(100), url varchar(100), username varchar(100)," +
                 " length integer, lower integer, upper integer, digits integer," +
-                " punctuation integer, spaces integer, include varchar(50), exclude varchar(50))"
+                " punctuation integer, spaces integer, include varchar(50), exclude varchar(50), modified_at varchar(150))"
         );
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
+    }
+
+    public boolean profileExists(String uuid) {
+        Cursor c = getReadableDatabase().rawQuery("select * from profiles where uuid='"+uuid+"'", null);
+        return c.getCount() == 1;
     }
 
     public long insertProfile(Profile p) {
@@ -60,6 +67,7 @@ public class ProfileDatabaseHelper extends SQLiteOpenHelper {
         cv.put(SpacesCol, p.spaces);
         cv.put(IncludeCol, p.include);
         cv.put(ExcludeCol, p.exclude);
+        cv.put(ModifiedAt, Util.getTime());
         return getWritableDatabase().insert("profiles", null, cv);
     }
 
@@ -77,6 +85,7 @@ public class ProfileDatabaseHelper extends SQLiteOpenHelper {
         cv.put(SpacesCol, p.spaces);
         cv.put(IncludeCol, p.include);
         cv.put(ExcludeCol, p.exclude);
+        cv.put(ModifiedAt, Util.getTime());
         return getWritableDatabase().update("profiles", cv, UUIDCol+"='"+p.uuid.toString()+"'", null);
     }
 
@@ -108,6 +117,11 @@ public class ProfileDatabaseHelper extends SQLiteOpenHelper {
             temp.spaces = getInt(getColumnIndex(SpacesCol))>0;
             temp.include = getString(getColumnIndex(IncludeCol));
             temp.exclude = getString(getColumnIndex(ExcludeCol));
+            try {
+               temp.modifiedAt = Util.parseRFC3339Date(getString(getColumnIndex(ExcludeCol)));
+            } catch (Exception ex) {
+               temp.modifiedAt = new Date();
+            }
             return temp;
         }
     }
