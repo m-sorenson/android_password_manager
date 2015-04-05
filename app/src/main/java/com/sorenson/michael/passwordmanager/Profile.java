@@ -157,10 +157,10 @@ public class Profile implements Serializable {
         try {
             result.put("uuid", uuid.toString());
             if (generation != 1) {
-                result.put("generation", String.valueOf(generation));
+                result.put("generation", generation);
             }
             if(!title.equals("")) {
-                result.put("title", title);
+                result.put("name", title);
             }
             if(!url.equals("")) {
                 result.put("url", url);
@@ -169,22 +169,22 @@ public class Profile implements Serializable {
                 result.put("username", username);
             }
             if(length != DEFAULT_LENGTH) {
-                result.put("length", String.valueOf(length));
+                result.put("length", length);
             }
             if(!lower) {
-                result.put("lower", String.valueOf(false));
+                result.put("lower", false);
             }
             if(!upper) {
-                result.put("upper", String.valueOf(false));
+                result.put("upper", false);
             }
             if(!digits) {
-                result.put("digits", String.valueOf(false));
+                result.put("digits", false);
             }
             if(!punctuation) {
-                result.put("punctuation", String.valueOf(false));
+                result.put("punctuation", false);
             }
             if(spaces) {
-                result.put("spaces", String.valueOf(true));
+                result.put("spaces", true);
             }
             if(!include.equals("")) {
                 result.put("include", include);
@@ -202,15 +202,15 @@ public class Profile implements Serializable {
     public void fromJson(JSONObject input) {
         uuid = UUID.fromString(input.optString("uuid"));
         generation = input.optInt("generation", 1);
-        title = input.optString("title", "");
+        title = input.optString("name", "");
         url = input.optString("url", "");
         username = input.optString("username", "");
-        length = input.optInt("generation", DEFAULT_LENGTH);
+        length = input.optInt("length", DEFAULT_LENGTH);
         lower = input.optBoolean("lower", true);
         upper = input.optBoolean("upper", true);
         digits = input.optBoolean("digits", true);
         punctuation = input.optBoolean("punctuation", true);
-        spaces = input.optBoolean("punctuation", false);
+        spaces = input.optBoolean("spaces", false);
         include = input.optString("include", "");
         exclude = input.optString("exclude", "");
         try {

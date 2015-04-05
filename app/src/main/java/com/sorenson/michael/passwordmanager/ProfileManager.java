@@ -31,6 +31,7 @@ import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -166,6 +167,9 @@ public class ProfileManager extends ActionBarActivity {
     public HttpResponse serverSync() {
         JSONObject reqValue = new JSONObject();
         JSONArray profilesjson = new JSONArray();
+        for(int i=0; i<pList.size(); i++) {
+            profilesjson.put(pList.get(i).toJson());
+        }
         DefaultHttpClient httpClient = new DefaultHttpClient();
         try {
             HttpPost req = new HttpPost("https://letmein-app.appspot.com/api/v1noauth/sync");
@@ -174,9 +178,10 @@ public class ProfileManager extends ActionBarActivity {
             reqValue.put("name", "m.sorenson407@gmail.com");
             reqValue.put("verify", "pptb");
             reqValue.put("profiles", profilesjson);
-            reqValue.put("modified_at", "2015-04-01T20:01:25.607-06:00");
-            reqValue.put("synced_at", "2015-04-01T20:11:25.607-06:00");
+            reqValue.put("modified_at", Util.getTime());
+            reqValue.put("synced_at", "2015-04-01T20:01:25.607-06:00");
             req.setEntity(new StringEntity(reqValue.toString(), HTTP.UTF_8));
+            System.out.println("Request being sent" + reqValue.toString());
             HttpResponse response = httpClient.execute(req);
             return response;
         } catch (Exception ex) {
@@ -206,21 +211,22 @@ public class ProfileManager extends ActionBarActivity {
                 System.out.println("HTTP is null");
             } else {
                 try {
-                    JSONObject responseJson = new JSONObject(EntityUtils.toString(response.getEntity()));
-                    JSONArray jsonArray = responseJson.getJSONArray("profiles");
+                    String resp = EntityUtils.toString(response.getEntity(), HTTP.UTF_8);
+                    System.out.println(resp);
+                    JSONObject responseJson = new JSONObject(resp);
+                    JSONArray jsonArray = responseJson.optJSONArray("profiles");
+                    if(jsonArray == null) {
+                        jsonArray = new JSONArray();
+                    }
                     JSONObject tempJson;
                     Profile temp;
                     for(int i=0; i<jsonArray.length(); i++) {
                         tempJson = jsonArray.getJSONObject(i);
                         temp = new Profile();
-                        temp.username = tempJson.getString("username");
-                        temp.url = tempJson.getString("url");
-                        temp.digits = tempJson.getBoolean("digits");
-                        temp.lower = tempJson.getBoolean("lower");
-                        temp.length = tempJson.getInt("length");
-                        String tempUUID = tempJson.getString("uuid");
-                        temp.uuid = UUID.fromString(tempUUID);
-                        if(dbHelper.profileExists(tempUUID)) {
+                        temp.fromJson(tempJson);
+                        if(temp.length == 0) {
+                            dbHelper.deleteProfile(temp);
+                        } else if(dbHelper.profileExists(temp.uuid.toString())) {
                             System.out.println("updated profile");
                             dbHelper.updateProfile(temp);
                         } else {
@@ -239,6 +245,11 @@ public class ProfileManager extends ActionBarActivity {
                     pAdapter.notifyDataSetChanged();
                 } catch (Exception ex) {
                     System.out.println("exception reading " + ex.toString());
+                    try {
+                        System.out.println(EntityUtils.toString(response.getEntity(), HTTP.UTF_8));
+                    } catch (Exception ex2) {
+                        System.out.println("MY MESSAGE: couldn't read response");
+                    }
                 }
             }
         }

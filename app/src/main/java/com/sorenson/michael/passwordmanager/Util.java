@@ -42,12 +42,14 @@ public class Util {
   }
 
   public static String getTime() {
+    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
     Date d = new Date();
-    return String.format("%tFT%tT.%tL%tz", d, d, d, d);
+    return df.format(d);
   }
 
   public static String getTime(Date d) {
-    return String.format("%tFT%tT.%tL%tz", d, d, d, d);
+    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+    return df.format(d);
   }
   //some testing stuff in main()
   public static void main(String[] args)throws java.text.ParseException{

@@ -174,6 +174,46 @@ public class ProfileActivity extends ActionBarActivity {
                 }
             });
 
+            final EditText include = (EditText) rootView.findViewById(R.id.include);
+            include.setText(p.include);
+            include.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                }
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                    p.include = include.getText().toString();
+                    dbHelper.updateProfile(p);
+                }
+            });
+
+            final EditText exclude = (EditText) rootView.findViewById(R.id.exclude);
+            exclude.setText(p.exclude);
+            exclude.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                }
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                    p.exclude = exclude.getText().toString();
+                    dbHelper.updateProfile(p);
+                }
+            });
+
             TextView passwordView = (TextView) rootView.findViewById(R.id.gen_password);
             passwordView.setText("");
 
