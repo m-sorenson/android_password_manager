@@ -171,17 +171,17 @@ public class Profile implements Serializable {
             if(length != DEFAULT_LENGTH) {
                 result.put("length", length);
             }
-            if(!lower) {
-                result.put("lower", false);
+            if(lower) {
+                result.put("lower", true);
             }
-            if(!upper) {
-                result.put("upper", false);
+            if(upper) {
+                result.put("upper", true);
             }
-            if(!digits) {
-                result.put("digits", false);
+            if(digits) {
+                result.put("digits", true);
             }
-            if(!punctuation) {
-                result.put("punctuation", false);
+            if(punctuation) {
+                result.put("punctuation", true);
             }
             if(spaces) {
                 result.put("spaces", true);
@@ -193,6 +193,7 @@ public class Profile implements Serializable {
                 result.put("exclude", exclude);
             }
             result.put("modified_at", Util.getTime(modifiedAt));
+            result.put("scheme", scheme);
         } catch(Exception ex) {
             System.out.println("Your JSON is bad and you should feel bad");
         }
@@ -202,6 +203,7 @@ public class Profile implements Serializable {
     public void fromJson(JSONObject input) {
         uuid = UUID.fromString(input.optString("uuid"));
         generation = input.optInt("generation", 1);
+        scheme = input.optString("scheme", SCHEME_SCRYPT_16384_8_1);
         title = input.optString("name", "");
         url = input.optString("url", "");
         username = input.optString("username", "");

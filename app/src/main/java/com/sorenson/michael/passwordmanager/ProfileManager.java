@@ -4,6 +4,7 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -31,6 +32,7 @@ import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -49,13 +51,6 @@ public class ProfileManager extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile_manager);
         dbHelper = new ProfileDatabaseHelper(this);
-        ProfileDatabaseHelper.ProfileCursor profileCursor = dbHelper.getProfiles();
-        profileCursor.moveToFirst();
-        while(!profileCursor.isAfterLast()) {
-            pList.add(profileCursor.getProfile());
-            profileCursor.moveToNext();
-        }
-
         pAdapter = new ProfileAdapter(this, R.layout.profile_item, pList);
         ListView listView = (ListView) findViewById(R.id.profile_list_view);
         listView.setAdapter(pAdapter);
@@ -88,20 +83,28 @@ public class ProfileManager extends ActionBarActivity {
             }
         });
 
+        // Populate profile list
+        refreshProfiles();
+    }
+
+    private void refreshProfiles() {
+        pList.clear();
+        pAdapter.notifyDataSetChanged();
+        ProfileDatabaseHelper.ProfileCursor profileCursor = dbHelper.getProfiles();
+        profileCursor.moveToFirst();
+        while(!profileCursor.isAfterLast()) {
+            pList.add(profileCursor.getProfile());
+            profileCursor.moveToNext();
+            pAdapter.notifyDataSetChanged();
+        }
+        pAdapter.notifyDataSetChanged();
     }
 
     @Override
     public void onResume() {
         super.onResume();
 
-        pList.clear();
-        ProfileDatabaseHelper.ProfileCursor profileCursor = dbHelper.getProfiles();
-        profileCursor.moveToFirst();
-        while(!profileCursor.isAfterLast()) {
-            pList.add(profileCursor.getProfile());
-            profileCursor.moveToNext();
-        }
-        pAdapter.notifyDataSetChanged();
+        refreshProfiles();
     }
 
     private void genPassword(Profile p) {
@@ -167,8 +170,22 @@ public class ProfileManager extends ActionBarActivity {
     public HttpResponse serverSync() {
         JSONObject reqValue = new JSONObject();
         JSONArray profilesjson = new JSONArray();
+        Date previousSync;
+        try {
+            previousSync = Util.parseRFC3339Date("2015-04-01T20:01:25.607-06:00");
+        } catch (Exception ex) {
+            previousSync = new Date();
+        }
+        Date lastMod = previousSync;
+        Profile temp;
         for(int i=0; i<pList.size(); i++) {
-            profilesjson.put(pList.get(i).toJson());
+            temp = pList.get(i);
+            if(temp.modifiedAt.after(previousSync)) {
+                profilesjson.put(pList.get(i).toJson());
+                if (temp.modifiedAt.after(lastMod)) {
+                    lastMod = temp.modifiedAt;
+                }
+            }
         }
         DefaultHttpClient httpClient = new DefaultHttpClient();
         try {
@@ -178,8 +195,16 @@ public class ProfileManager extends ActionBarActivity {
             reqValue.put("name", "m.sorenson407@gmail.com");
             reqValue.put("verify", "pptb");
             reqValue.put("profiles", profilesjson);
-            reqValue.put("modified_at", Util.getTime());
-            reqValue.put("synced_at", "2015-04-01T20:01:25.607-06:00");
+
+            SharedPreferences preferences = getSharedPreferences("sync_data", MODE_PRIVATE);
+            boolean hasSynced = preferences.contains("lastSync");
+            if (hasSynced) {
+                String lastSync = preferences.getString("previous_synced_at", null);
+                reqValue.put("previous_synced_at", lastSync);
+            }
+
+            reqValue.put("modified_at", Util.getTime(lastMod));
+            reqValue.put("synced_at", Util.getTime());
             req.setEntity(new StringEntity(reqValue.toString(), HTTP.UTF_8));
             System.out.println("Request being sent" + reqValue.toString());
             HttpResponse response = httpClient.execute(req);
@@ -212,7 +237,7 @@ public class ProfileManager extends ActionBarActivity {
             } else {
                 try {
                     String resp = EntityUtils.toString(response.getEntity(), HTTP.UTF_8);
-                    System.out.println(resp);
+                    System.out.println("Response from Server: " + resp);
                     JSONObject responseJson = new JSONObject(resp);
                     JSONArray jsonArray = responseJson.optJSONArray("profiles");
                     if(jsonArray == null) {
@@ -235,14 +260,9 @@ public class ProfileManager extends ActionBarActivity {
                             dbHelper.insertProfile(temp);
                         }
                     }
-                    pList.clear();
-                    ProfileDatabaseHelper.ProfileCursor profileCursor = dbHelper.getProfiles();
-                    profileCursor.moveToFirst();
-                    while(!profileCursor.isAfterLast()) {
-                        pList.add(profileCursor.getProfile());
-                        profileCursor.moveToNext();
-                    }
-                    pAdapter.notifyDataSetChanged();
+                    dbHelper.clearAllDeleted();
+                    refreshProfiles();
+
                 } catch (Exception ex) {
                     System.out.println("exception reading " + ex.toString());
                     try {
