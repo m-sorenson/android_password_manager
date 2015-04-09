@@ -45,6 +45,8 @@ public class ProfileManager extends ActionBarActivity {
     final ArrayList<Profile> pList = new ArrayList<>();
     ProfileAdapter pAdapter;
     String masterPassword = "";
+    String prevSyncKey = "previous_sync_at";
+    String syncPreferences = "SyncData";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,18 +60,18 @@ public class ProfileManager extends ActionBarActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                                             @Override
                                             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                                                final Intent intent = new Intent();
-                                                Profile curItem = pList.get(position);
-                                                intent.setClass(context, ProfileActivity.class);
 
-                                                intent.putExtra("curProfile", curItem);
+                                                //final Intent intent = new Intent();
+                                                //Profile curItem = pList.get(position);
+                                                //intent.setClass(context, ProfileActivity.class);
+                                                //intent.putExtra("curProfile", curItem);
+                                                //intent.putExtra("profileList", pList);
+                                                //intent.putExtra("profileIndex", position);
+                                                //intent.putExtra("numProfiles", pList.size());
+                                                //intent.putExtra("masterPassword", masterPassword);
+                                                //startActivity(intent);
+                                                launchProfile(context, position);
 
-                                                intent.putExtra("profileList", pList);
-                                                intent.putExtra("profileIndex", position);
-                                                intent.putExtra("numProfiles", pList.size());
-                                                intent.putExtra("masterPassword", masterPassword);
-
-                                                startActivity(intent);
                                             }
                                         }
         );
@@ -87,6 +89,20 @@ public class ProfileManager extends ActionBarActivity {
         refreshProfiles();
     }
 
+    private void launchProfile(Context context, int pos) {
+        final Intent intent = new Intent();
+        Profile curItem = pList.get(pos);
+        intent.setClass(context, ProfileActivity.class);
+
+        intent.putExtra("curProfile", curItem);
+
+        intent.putExtra("profileList", pList);
+        intent.putExtra("profileIndex", pos);
+        intent.putExtra("numProfiles", pList.size());
+        intent.putExtra("masterPassword", masterPassword);
+
+        startActivity(intent);
+    }
     private void refreshProfiles() {
         pList.clear();
         pAdapter.notifyDataSetChanged();
@@ -155,10 +171,10 @@ public class ProfileManager extends ActionBarActivity {
         }
         if (id == R.id.add_new_profile) {
             Profile temp = new Profile();
-            temp.title = "Add New Title";
             dbHelper.insertProfile(temp);
             pList.add(temp);
             pAdapter.notifyDataSetChanged();
+            launchProfile(this, pList.size()-1);
         }
         if (id == R.id.sync) {
             new ServerSync().execute(null, null, null);
@@ -170,23 +186,47 @@ public class ProfileManager extends ActionBarActivity {
     public HttpResponse serverSync() {
         JSONObject reqValue = new JSONObject();
         JSONArray profilesjson = new JSONArray();
+        SharedPreferences preferences = getSharedPreferences(syncPreferences, MODE_PRIVATE);
+        boolean hasSynced = preferences.contains(prevSyncKey);
+        String lastSync = "";
+        if (hasSynced) {
+            lastSync = preferences.getString(prevSyncKey, null);
+        }
         Date previousSync;
         try {
-            previousSync = Util.parseRFC3339Date("2015-04-01T20:01:25.607-06:00");
+            previousSync = Util.parseRFC3339Date(lastSync);
         } catch (Exception ex) {
-            previousSync = new Date();
+            previousSync = null;
         }
-        Date lastMod = previousSync;
-        Profile temp;
-        for(int i=0; i<pList.size(); i++) {
-            temp = pList.get(i);
-            if(temp.modifiedAt.after(previousSync)) {
+
+        Date lastMod = new Date();
+
+        if(previousSync != null) {
+            lastMod = previousSync;
+            Profile temp;
+            for (int i = 0; i < pList.size(); i++) {
+                temp = pList.get(i);
+                if (temp.modifiedAt.after(previousSync)) {
+                    profilesjson.put(pList.get(i).toJson());
+                    if (temp.modifiedAt.after(lastMod)) {
+                        lastMod = temp.modifiedAt;
+                    }
+                }
+            }
+        } else {
+            if(pList.size() > 0) {
+                lastMod = pList.get(0).modifiedAt;
+            }
+            Profile temp;
+            for (int i = 0; i < pList.size(); i++) {
+                temp = pList.get(i);
                 profilesjson.put(pList.get(i).toJson());
                 if (temp.modifiedAt.after(lastMod)) {
                     lastMod = temp.modifiedAt;
                 }
             }
         }
+
         DefaultHttpClient httpClient = new DefaultHttpClient();
         try {
             HttpPost req = new HttpPost("https://letmein-app.appspot.com/api/v1noauth/sync");
@@ -196,11 +236,8 @@ public class ProfileManager extends ActionBarActivity {
             reqValue.put("verify", "pptb");
             reqValue.put("profiles", profilesjson);
 
-            SharedPreferences preferences = getSharedPreferences("sync_data", MODE_PRIVATE);
-            boolean hasSynced = preferences.contains("lastSync");
-            if (hasSynced) {
-                String lastSync = preferences.getString("previous_synced_at", null);
-                reqValue.put("previous_synced_at", lastSync);
+            if(hasSynced) {
+                reqValue.put(prevSyncKey, lastSync);
             }
 
             reqValue.put("modified_at", Util.getTime(lastMod));
@@ -234,6 +271,7 @@ public class ProfileManager extends ActionBarActivity {
         protected void onPostExecute(HttpResponse response) {
             if(response == null) {
                 System.out.println("HTTP is null");
+                Toast.makeText(getApplicationContext(), "Sync Failed", Toast.LENGTH_SHORT).show();
             } else {
                 try {
                     String resp = EntityUtils.toString(response.getEntity(), HTTP.UTF_8);
@@ -263,13 +301,14 @@ public class ProfileManager extends ActionBarActivity {
                     dbHelper.clearAllDeleted();
                     refreshProfiles();
 
+                    SharedPreferences.Editor preferences = getSharedPreferences(syncPreferences, MODE_PRIVATE).edit();
+                    preferences.putString(prevSyncKey, responseJson.getString(prevSyncKey));
+                    preferences.commit();
+
+                    Toast.makeText(getApplicationContext(), "Sync Successful", Toast.LENGTH_SHORT).show();
                 } catch (Exception ex) {
                     System.out.println("exception reading " + ex.toString());
-                    try {
-                        System.out.println(EntityUtils.toString(response.getEntity(), HTTP.UTF_8));
-                    } catch (Exception ex2) {
-                        System.out.println("MY MESSAGE: couldn't read response");
-                    }
+                    Toast.makeText(getApplicationContext(), "Sync Failed", Toast.LENGTH_SHORT).show();
                 }
             }
         }
