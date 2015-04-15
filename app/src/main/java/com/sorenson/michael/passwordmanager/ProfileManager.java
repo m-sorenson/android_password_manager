@@ -1,5 +1,7 @@
 package com.sorenson.michael.passwordmanager;
 
+import android.app.Activity;
+import android.app.FragmentManager;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -12,11 +14,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -26,26 +26,21 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Serializable;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
-import java.util.UUID;
 
 
-public class ProfileManager extends ActionBarActivity {
+public class ProfileManager extends ActionBarActivity implements PasswordDialogFragment.OnCompleteListener {
 
+    Activity thisActivityRef = this;
     Profile curProfile = new Profile();
     ProfileDatabaseHelper dbHelper;
     final ArrayList<Profile> pList = new ArrayList<>();
     ProfileAdapter pAdapter;
     String masterPassword = "";
     String prevSyncKey = "previous_sync_at";
+    String verifyKey = "verify";
     String syncPreferences = "SyncData";
 
     @Override
@@ -61,15 +56,6 @@ public class ProfileManager extends ActionBarActivity {
                                             @Override
                                             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-                                                //final Intent intent = new Intent();
-                                                //Profile curItem = pList.get(position);
-                                                //intent.setClass(context, ProfileActivity.class);
-                                                //intent.putExtra("curProfile", curItem);
-                                                //intent.putExtra("profileList", pList);
-                                                //intent.putExtra("profileIndex", position);
-                                                //intent.putExtra("numProfiles", pList.size());
-                                                //intent.putExtra("masterPassword", masterPassword);
-                                                //startActivity(intent);
                                                 launchProfile(context, position);
 
                                             }
@@ -80,7 +66,9 @@ public class ProfileManager extends ActionBarActivity {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
                 Profile temp = pList.get(position);
-                genPassword(temp);
+                String pw = genPassword(temp);
+                Toast.makeText(context, "Password Copied", Toast.LENGTH_SHORT).show();
+                clipboardPaste(pw);
                 return true;
             }
         });
@@ -123,10 +111,16 @@ public class ProfileManager extends ActionBarActivity {
         refreshProfiles();
     }
 
-    private void genPassword(Profile p) {
+    private String genPassword(Profile p) {
         curProfile = p;
-        new GenProfilePassword().execute(null, null, null);
+        try {
+            return new GenProfilePassword().execute(null, null, null).get();
+        } catch(Exception ex) {
+            System.out.println(ex.toString());
+            return "";
+        }
     }
+
     private class GenProfilePassword extends AsyncTask<Void, Void, String> {
         protected void onPreExecute() {
 
@@ -142,10 +136,14 @@ public class ProfileManager extends ActionBarActivity {
         }
 
         protected void onPostExecute(String results) {
-            ClipboardManager clipboardManager = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-            ClipData clipData = ClipData.newPlainText("text", results);
-            clipboardManager.setPrimaryClip(clipData);
+             super.onPostExecute(results);
         }
+    }
+
+    private void clipboardPaste(String pw) {
+        ClipboardManager clipboardManager = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData clipData = ClipData.newPlainText("text", pw);
+        clipboardManager.setPrimaryClip(clipData);
     }
 
     @Override
@@ -227,13 +225,19 @@ public class ProfileManager extends ActionBarActivity {
             }
         }
 
+        String verifypw = preferences.getString(verifyKey,"");
+        System.out.println(verifypw);
+
         DefaultHttpClient httpClient = new DefaultHttpClient();
         try {
             HttpPost req = new HttpPost("https://letmein-app.appspot.com/api/v1noauth/sync");
             req.addHeader("content-type", "application/json");
             req.addHeader("Accept", "application/json");
             reqValue.put("name", "m.sorenson407@gmail.com");
-            reqValue.put("verify", "pptb");
+
+            //reqValue.put("verify", "pptb");
+            reqValue.put("verify", verifypw);
+
             reqValue.put("profiles", profilesjson);
 
             if(hasSynced) {
@@ -255,7 +259,35 @@ public class ProfileManager extends ActionBarActivity {
 
     private class ServerSync extends AsyncTask<Void, Void, HttpResponse> {
         protected void onPreExecute() {
-
+            if(masterPassword.equals("")) {
+                FragmentManager fm = getFragmentManager();
+                PasswordDialogFragment passwordDialogFragment = new PasswordDialogFragment();
+                //passwordDialogFragment.onAttach(thisActivityRef);
+                passwordDialogFragment.show(fm, "get_master_pw");
+                this.cancel(true);
+            }
+            if(this.isCancelled()) {
+                SharedPreferences preferences = getSharedPreferences(syncPreferences, MODE_PRIVATE);
+                boolean hasVerify = preferences.contains(verifyKey);
+                if (!hasVerify) {
+                    Profile temp = new Profile();
+                    temp.username = "verify";
+                    temp.url = "";
+                    temp.generation = 0;
+                    temp.length = 4;
+                    temp.lower = true;
+                    temp.upper = false;
+                    temp.digits = false;
+                    temp.punctuation = false;
+                    temp.spaces = false;
+                    temp.include = "";
+                    temp.exclude = "";
+                    String verifyPW = genPassword(temp);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putString(verifyKey, verifyPW);
+                    editor.commit();
+                }
+            }
         }
 
         protected HttpResponse doInBackground(Void... params) {
@@ -270,8 +302,8 @@ public class ProfileManager extends ActionBarActivity {
 
         protected void onPostExecute(HttpResponse response) {
             if(response == null) {
-                System.out.println("HTTP is null");
-                Toast.makeText(getApplicationContext(), "Sync Failed", Toast.LENGTH_SHORT).show();
+                //System.out.println("HTTP is null");
+                Toast.makeText(getApplicationContext(), "I Probably Cancelled", Toast.LENGTH_SHORT).show();
             } else {
                 try {
                     String resp = EntityUtils.toString(response.getEntity(), HTTP.UTF_8);
@@ -319,4 +351,10 @@ public class ProfileManager extends ActionBarActivity {
             masterPassword = data.getData().toString();
         }
     }
+
+    public void onComplete(String pw) {
+        masterPassword = pw;
+        Toast.makeText(this, masterPassword, Toast.LENGTH_SHORT).show();
+    }
+
 }
