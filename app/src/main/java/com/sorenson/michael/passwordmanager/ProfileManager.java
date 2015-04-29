@@ -17,6 +17,9 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.appspot.passwordgen_msorenson.letmein.Letmein;
+import com.appspot.passwordgen_msorenson.letmein.model.SyncRequest;
+
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -29,6 +32,7 @@ import org.json.JSONObject;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 
 public class ProfileManager extends ActionBarActivity implements PasswordDialogFragment.OnCompleteListener {
@@ -42,6 +46,8 @@ public class ProfileManager extends ActionBarActivity implements PasswordDialogF
     String prevSyncKey = "previous_sync_at";
     String verifyKey = "verify";
     String syncPreferences = "SyncData";
+    Boolean triedPassword = false;
+    Boolean triedSync = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,8 +73,10 @@ public class ProfileManager extends ActionBarActivity implements PasswordDialogF
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
                 Profile temp = pList.get(position);
                 String pw = genPassword(temp);
-                Toast.makeText(context, "Password Copied", Toast.LENGTH_SHORT).show();
-                clipboardPaste(pw);
+                if(!triedPassword) {
+                    Toast.makeText(context, "Password Copied", Toast.LENGTH_SHORT).show();
+                    clipboardPaste(pw);
+                }
                 return true;
             }
         });
@@ -123,7 +131,13 @@ public class ProfileManager extends ActionBarActivity implements PasswordDialogF
 
     private class GenProfilePassword extends AsyncTask<Void, Void, String> {
         protected void onPreExecute() {
-
+            if(masterPassword.equals("")) {
+                FragmentManager fm = getFragmentManager();
+                PasswordDialogFragment passwordDialogFragment = new PasswordDialogFragment();
+                passwordDialogFragment.show(fm, "get_master_pw");
+                this.cancel(true);
+                triedPassword = true;
+            }
         }
 
         protected String doInBackground(Void... params) {
@@ -181,10 +195,9 @@ public class ProfileManager extends ActionBarActivity implements PasswordDialogF
         return super.onOptionsItemSelected(item);
     }
 
-    public HttpResponse serverSync() {
-        JSONObject reqValue = new JSONObject();
-        JSONArray profilesjson = new JSONArray();
+    public SyncRequest serverSync() {
         SharedPreferences preferences = getSharedPreferences(syncPreferences, MODE_PRIVATE);
+        List<com.appspot.passwordgen_msorenson.letmein.model.Profile> reqProfiles = new ArrayList<>();
         boolean hasSynced = preferences.contains(prevSyncKey);
         String lastSync = "";
         if (hasSynced) {
@@ -205,7 +218,7 @@ public class ProfileManager extends ActionBarActivity implements PasswordDialogF
             for (int i = 0; i < pList.size(); i++) {
                 temp = pList.get(i);
                 if (temp.modifiedAt.after(previousSync)) {
-                    profilesjson.put(pList.get(i).toJson());
+                    reqProfiles.add(pList.get(i).toEndpointsProfile());
                     if (temp.modifiedAt.after(lastMod)) {
                         lastMod = temp.modifiedAt;
                     }
@@ -218,7 +231,7 @@ public class ProfileManager extends ActionBarActivity implements PasswordDialogF
             Profile temp;
             for (int i = 0; i < pList.size(); i++) {
                 temp = pList.get(i);
-                profilesjson.put(pList.get(i).toJson());
+                reqProfiles.add(pList.get(i).toEndpointsProfile());
                 if (temp.modifiedAt.after(lastMod)) {
                     lastMod = temp.modifiedAt;
                 }
@@ -226,30 +239,32 @@ public class ProfileManager extends ActionBarActivity implements PasswordDialogF
         }
 
         String verifypw = preferences.getString(verifyKey,"");
-        System.out.println(verifypw);
+        System.out.println("This is verify pw:  " + verifypw);
 
-        DefaultHttpClient httpClient = new DefaultHttpClient();
+        Letmein letmein = AppConstants.apiSyncRequest();
+        //DefaultHttpClient httpClient = new DefaultHttpClient();
+        SyncRequest syncRequest = new SyncRequest();
         try {
-            HttpPost req = new HttpPost("https://letmein-app.appspot.com/api/v1noauth/sync");
-            req.addHeader("content-type", "application/json");
-            req.addHeader("Accept", "application/json");
-            reqValue.put("name", "m.sorenson407@gmail.com");
+            //HttpPost req = new HttpPost("https://letmein-app.appspot.com/api/v1noauth/sync");
+            //req.addHeader("content-type", "application/json");
+            //req.addHeader("Accept", "application/json");
 
-            //reqValue.put("verify", "pptb");
-            reqValue.put("verify", verifypw);
+            syncRequest.setName("m.sorenson407@gmail.com");
+            syncRequest.setVerify(verifypw);
+            //syncRequest.setProfiles(reqProfiles);
+            syncRequest.setSyncedAt(Util.getTime());
 
-            reqValue.put("profiles", profilesjson);
+            // DON'T DELETE
+            //if(hasSynced) {
+            //    syncRequest.setPreviousSyncAt(lastSync);
+            //}
+            System.out.println(syncRequest);
 
-            if(hasSynced) {
-                reqValue.put(prevSyncKey, lastSync);
-            }
+            return letmein.sync(syncRequest).execute();
 
-            reqValue.put("modified_at", Util.getTime(lastMod));
-            reqValue.put("synced_at", Util.getTime());
-            req.setEntity(new StringEntity(reqValue.toString(), HTTP.UTF_8));
-            System.out.println("Request being sent" + reqValue.toString());
-            HttpResponse response = httpClient.execute(req);
-            return response;
+            //???reqValue.put("modified_at", Util.getTime(lastMod));
+            //HttpResponse response = httpClient.execute(req);
+            //return response;
         } catch (Exception ex) {
             System.out.println("In serverSync call");
             System.out.println(ex.toString());
@@ -257,19 +272,20 @@ public class ProfileManager extends ActionBarActivity implements PasswordDialogF
         return null;
     }
 
-    private class ServerSync extends AsyncTask<Void, Void, HttpResponse> {
+    private class ServerSync extends AsyncTask<Void, Void, SyncRequest> {
         protected void onPreExecute() {
             if(masterPassword.equals("")) {
                 FragmentManager fm = getFragmentManager();
                 PasswordDialogFragment passwordDialogFragment = new PasswordDialogFragment();
-                //passwordDialogFragment.onAttach(thisActivityRef);
                 passwordDialogFragment.show(fm, "get_master_pw");
                 this.cancel(true);
-            }
-            if(this.isCancelled()) {
+                triedSync = true;
+            } else {
+                System.out.println("Checking if there is a verify");
                 SharedPreferences preferences = getSharedPreferences(syncPreferences, MODE_PRIVATE);
-                boolean hasVerify = preferences.contains(verifyKey);
+                boolean hasVerify = false;//preferences.contains(verifyKey);
                 if (!hasVerify) {
+                    System.out.println("creating new verify");
                     Profile temp = new Profile();
                     temp.username = "verify";
                     temp.url = "";
@@ -290,7 +306,7 @@ public class ProfileManager extends ActionBarActivity implements PasswordDialogF
             }
         }
 
-        protected HttpResponse doInBackground(Void... params) {
+        protected SyncRequest doInBackground(Void... params) {
             try {
                 return serverSync();
             } catch(Exception e) {
@@ -300,25 +316,30 @@ public class ProfileManager extends ActionBarActivity implements PasswordDialogF
             }
         }
 
-        protected void onPostExecute(HttpResponse response) {
+        protected void onPostExecute(SyncRequest response) {
             if(response == null) {
                 //System.out.println("HTTP is null");
                 Toast.makeText(getApplicationContext(), "I Probably Cancelled", Toast.LENGTH_SHORT).show();
             } else {
                 try {
-                    String resp = EntityUtils.toString(response.getEntity(), HTTP.UTF_8);
-                    System.out.println("Response from Server: " + resp);
-                    JSONObject responseJson = new JSONObject(resp);
-                    JSONArray jsonArray = responseJson.optJSONArray("profiles");
-                    if(jsonArray == null) {
-                        jsonArray = new JSONArray();
-                    }
-                    JSONObject tempJson;
+                    List<com.appspot.passwordgen_msorenson.letmein.model.Profile> epProfiles = response.getProfiles();
+                    System.out.println(response.getProfiles());
+                    //String resp = EntityUtils.toString(response.getEntity(), HTTP.UTF_8);
+                    //System.out.println("Response from Server: " + resp);
+                    //JSONObject responseJson = new JSONObject(resp);
+                    //JSONArray jsonArray = responseJson.optJSONArray("profiles");
+                    //if(jsonArray == null) {
+                    //    jsonArray = new JSONArray();
+                    //}
+                    //JSONObject tempJson;
+                    com.appspot.passwordgen_msorenson.letmein.model.Profile tempEP;
                     Profile temp;
-                    for(int i=0; i<jsonArray.length(); i++) {
-                        tempJson = jsonArray.getJSONObject(i);
+                    for(int i=0; i<epProfiles.size(); i++) {
+                        tempEP = epProfiles.get(i);
+                        System.out.println(tempEP);
                         temp = new Profile();
-                        temp.fromJson(tempJson);
+                        temp.fromEndPointsProfile(tempEP);
+                        System.out.println("past from endPoints");
                         if(temp.length == 0) {
                             dbHelper.deleteProfile(temp);
                         } else if(dbHelper.profileExists(temp.uuid.toString())) {
@@ -330,11 +351,12 @@ public class ProfileManager extends ActionBarActivity implements PasswordDialogF
                             dbHelper.insertProfile(temp);
                         }
                     }
+                    System.out.println("Made it past loop");
                     dbHelper.clearAllDeleted();
                     refreshProfiles();
-
                     SharedPreferences.Editor preferences = getSharedPreferences(syncPreferences, MODE_PRIVATE).edit();
-                    preferences.putString(prevSyncKey, responseJson.getString(prevSyncKey));
+                    //preferences.putString(prevSyncKey, responseJson.getString(prevSyncKey));
+                    preferences.putString(prevSyncKey, response.getPreviousSyncAt());
                     preferences.commit();
 
                     Toast.makeText(getApplicationContext(), "Sync Successful", Toast.LENGTH_SHORT).show();
@@ -352,9 +374,26 @@ public class ProfileManager extends ActionBarActivity implements PasswordDialogF
         }
     }
 
+    private void getPasswordCallback() {
+        if(triedSync) {
+            new ServerSync().execute(null, null, null);
+            triedSync = false;
+        }
+        if(triedPassword) {
+            try {
+                String pw = new GenProfilePassword().execute(null, null, null).get();
+                Toast.makeText(thisActivityRef, "Password Copied", Toast.LENGTH_SHORT).show();
+                clipboardPaste(pw);
+            } catch (Exception ex) {
+                System.out.println(ex.toString());
+            }
+            triedPassword = false;
+        }
+    }
+
     public void onComplete(String pw) {
         masterPassword = pw;
-        Toast.makeText(this, masterPassword, Toast.LENGTH_SHORT).show();
+        getPasswordCallback();
     }
 
 }

@@ -222,4 +222,102 @@ public class Profile implements Serializable {
             modifiedAt = new Date();
         }
     }
+
+    public com.appspot.passwordgen_msorenson.letmein.model.Profile toEndpointsProfile() {
+        com.appspot.passwordgen_msorenson.letmein.model.Profile profile = new com.appspot.passwordgen_msorenson.letmein.model.Profile();
+        profile.setDigits(this.digits);
+        profile.setExclude(this.exclude);
+        profile.setGeneration(this.generation);
+        profile.setInclude(this.include);
+        profile.setLength(this.length);
+        profile.setLower(this.lower);
+        profile.setModifiedAt(Util.getTime(this.modifiedAt));
+        profile.setName(this.title);
+        profile.setPunctuation(this.punctuation);
+        profile.setScheme(this.scheme);
+        profile.setSpaces(this.spaces);
+        profile.setUpper(this.upper);
+        profile.setUrl(this.url);
+        profile.setUsername(this.username);
+        profile.setUuid(this.uuid.toString());
+        return profile;
+    }
+
+    public void fromEndPointsProfile(com.appspot.passwordgen_msorenson.letmein.model.Profile profile) {
+        try {
+            this.digits = profile.getDigits();
+        } catch (Exception ex) {
+            this.digits = true;
+        }
+        try {
+            this.exclude = profile.getExclude();
+        } catch (Exception ex) {
+            this.digits = this.digits;
+        }
+        try {
+            this.generation = profile.getGeneration();
+        } catch (Exception ex) {
+            this.digits = this.digits;
+        }
+        try {
+            this.include = profile.getInclude();
+        } catch (Exception ex) {
+            this.digits = this.digits;
+        }
+        try {
+            this.length = profile.getLength();
+        } catch (Exception ex) {
+            this.digits = this.digits;
+        }
+        try{
+            this.lower = profile.getLower();
+        } catch (Exception ex) {
+            this.digits = this.digits;
+        }
+        try {
+            this.modifiedAt = Util.parseRFC3339Date(profile.getModifiedAt());
+        } catch (Exception ex) {
+            this.modifiedAt = new Date();
+        }
+        try {
+            this.title = profile.getName();
+        } catch (Exception ex) {
+            this.digits = this.digits;
+        }
+        try {
+            this.punctuation = profile.getPunctuation();
+        } catch (Exception ex) {
+            this.digits = this.digits;
+        }
+        try {
+            this.scheme = profile.getScheme();
+        } catch (Exception ex) {
+            this.digits = this.digits;
+        }
+        try {
+            this.spaces = profile.getSpaces();
+        } catch (Exception ex) {
+            this.digits = this.digits;
+        }
+        try {
+            this.upper = profile.getUpper();
+        } catch (Exception ex) {
+            this.digits = this.digits;
+        }
+        try {
+            this.url = profile.getUrl();
+        } catch (Exception ex) {
+            this.digits = this.digits;
+        }
+        try {
+            this.username = profile.getUsername();
+        } catch (Exception ex) {
+            this.digits = this.digits;
+        }
+        try {
+            this.uuid = UUID.fromString(profile.getUuid());
+        } catch (Exception ex) {
+            this.digits = this.digits;
+        }
+    }
 }
